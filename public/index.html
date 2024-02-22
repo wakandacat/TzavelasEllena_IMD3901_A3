@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+      <title>A3</title>
+      <meta name="description" content="Snowball">
+      <!--aframe-->
+      <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+      <!--environment library-->
+      <script src="https://unpkg.com/aframe-environment-component@1.3.3/dist/aframe-environment-component.min.js"></script>
+      <!--physics library
+      <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.min.js"></script>
+      -->
+      <!--custom js components-->
+
+      <!--css-->
+      <link rel="stylesheet" href="css/styles.css">
+    </head>
+
+    <body>
+
+      <!--start screen to wait for user gesture-->
+      <div id="user-gesture-overlay">
+        <div class="center">
+          <button id="user-gesture-button" onclick="startExperience();">
+            <h3>A3</h3>
+          </button>
+          <img id="loading-animation" src="https://cdn.glitch.com/4d85200f-900f-4f4a-b950-82c4af80c1fb%2Floader.gif?v=1611262527887">
+        </div>
+      </div>
+
+
+      <!--all a-frame stuff needs to be in an a-scene-->
+        <a-scene> 
+
+          <!--aframe uses an asset system to cache assets-->
+          <a-assets timeout="10000">
+        
+            <!--music/sounds-->
+          </a-assets>
+
+          <!--camera-->
+          <a-entity id="cam" camera wasd-controls look-controls position="0 1.6 0">
+              <!--cursor-->
+              <a-entity id="mouse" cursor="rayOrigin:mouse;" raycaster="far:5; interval:200; objects: .interactive;"></a-entity>      
+          </a-entity>
+          
+          <!--environment-->
+          <a-entity environment="preset: forest; fog: 0.75; shadow: true; groundTexture: none; groundColor: rgb(255, 255, 255); dressingColor: rgb(172,217,180)"></a-entity>
+
+        </a-scene>
+    </body>
+
+</html>
