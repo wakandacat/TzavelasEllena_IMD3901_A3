@@ -17,20 +17,47 @@
     </head>
 
     <body>
+      <script>
+          AFRAME.registerComponent('start-experience', {
+          init: function () {
+            //we can't play sound on some browsers until we have some user interaction
+            //this means we should only start playing ambient music after this button is clicked
+            console.log('scene loaded');
+            document.querySelector('#loading-animation').style.display='none';
+            const buttons = document.querySelectorAll('.user-gesture-button');
+            for (let i=0;i<buttons.length;i++){
+              buttons[i].style.display='flex';
+            }
+          }
+        });
+        
+        function startExperience() {
+          //hide user-gesture overlay
+           document.querySelector('#user-gesture-overlay').style.display='none';
+        }
+
+      </script>
 
       <!--start screen to wait for user gesture-->
       <div id="user-gesture-overlay">
-        <div class="center">
-          <button id="user-gesture-button" onclick="startExperience();">
-            <h3>A3</h3>
-          </button>
+        <div id="container">
+          <a href="/player1">
+            <button class="user-gesture-button" onclick="startExperience();">
+              PLAYER1
+            </button>
+          </a>
+          <a href="/player2">
+            <button class="user-gesture-button" onclick="startExperience();">
+              PLAYER2
+            </button>
+          </a>
           <img id="loading-animation" src="https://cdn.glitch.com/4d85200f-900f-4f4a-b950-82c4af80c1fb%2Floader.gif?v=1611262527887">
         </div>
       </div>
 
 
       <!--all a-frame stuff needs to be in an a-scene-->
-        <a-scene> 
+      <a-scene start-experience> 
 
           <!--aframe uses an asset system to cache assets-->
           <a-assets timeout="10000">
