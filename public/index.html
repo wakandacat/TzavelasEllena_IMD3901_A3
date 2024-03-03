@@ -10,6 +10,7 @@
       <!--physics library
       <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-physics-system@v4.2.2/dist/aframe-physics-system.min.js"></script>
       -->
+      <script src="/socket.io/socket.io.js"></script>
       <!--custom js components-->
 
       <!--css-->
@@ -17,17 +18,104 @@
     </head>
 
     <body>
+       <!--all a-frame stuff needs to be in an a-scene-->
+       <a-scene start-experience> 
+
+        <!--aframe uses an asset system to cache assets-->
+        <a-assets timeout="10000">
+      
+          <!--music/sounds-->
+        </a-assets>
+
+        <!--camera-->
+        <a-entity id="cam" camera wasd-controls look-controls position="0 1.6 0">
+            <!--cursor-->
+            <a-entity id="mouse" cursor="rayOrigin:mouse;" raycaster="far:5; interval:200; objects: .interactive;"></a-entity>      
+        </a-entity>
+        
+        <!--environment-->
+        <a-entity environment="preset: forest; fog: 0.75; shadow: true; groundTexture: none; groundColor: rgb(255, 255, 255); dressingColor: rgb(172,217,180)"></a-entity>
+
+      </a-scene>
+
+
+      <!--start screen to wait for user gesture-->
+      <div id="user-gesture-overlay">
+        <div id="container">
+            <button id="circle-blue" class="start-circles" onclick="startSelection('circle-blue')">
+            </button>
+            <button id="circle-red" class="start-circles" onclick="startSelection('circle-red')">
+            </button>
+          <img id="loading-animation" src="https://cdn.glitch.com/4d85200f-900f-4f4a-b950-82c4af80c1fb%2Floader.gif?v=1611262527887">
+        </div>
+        <button class="user-gesture-button" onclick="startExperience();">
+          <p>START</p>
+        </button>
+      </div>
+
+      <div id="UI">
+        <div>
+          <button id="player1" class="ui-circles">
+            1
+          </button>
+        </div>
+        <div>
+          <button id="player2" class="ui-circles">
+            2
+          </button>
+        </div>
+      </div>
+
+
       <script>
+
+        var player1Col = "#53e043";
+        var player2Col = "#d938c6";
+
+
+         let socket = io(); //connect this client
+
+          socket.on('connect', (userData) => {
+              console.log('Hello there');
+
+            //num clients connected
+           // var users = io.engine.clientsCount;
+           // console.log(users);
+
+            //send event
+            document.querySelector('#circle-red').addEventListener('click', function(e) {
+                socket.emit('red', socket.id);
+            })
+
+            //send event
+            document.querySelector('#circle-blue').addEventListener('click', function(e) {
+                socket.emit('blue', socket.id);
+            })
+
+            //listen for our custom colour change event
+            socket.on('circleChoice', (data) => {
+                console.log('circleChoice: ' + data);
+                var temp = String(data);
+                //if event was from other client
+                if(temp.includes(socket.id) != true){
+                  if(temp.includes("red")){
+                    var otherCirc = document.querySelector("#circle-red");
+                    otherCirc.style.outlineColor = player2Col;
+                  } else {
+                    var otherCirc = document.querySelector("#circle-blue");
+                    otherCirc.style.outlineColor = player2Col;
+                  }
+                }
+            });
+
+          });
+
           AFRAME.registerComponent('start-experience', {
           init: function () {
             //we can't play sound on some browsers until we have some user interaction
             //this means we should only start playing ambient music after this button is clicked
             console.log('scene loaded');
             document.querySelector('#loading-animation').style.display='none';
-            const buttons = document.querySelectorAll('.user-gesture-button');
-            for (let i=0;i<buttons.length;i++){
-              buttons[i].style.display='flex';
-            }
           }
         });
         
@@ -36,45 +124,37 @@
            document.querySelector('#user-gesture-overlay').style.display='none';
         }
 
+        function startSelection(id){
+
+          //show the start button
+          document.querySelector('.user-gesture-button').style.display='block';
+
+          //get the button that was pressed
+          var selectedCirc = document.querySelector("[id=" + CSS.escape(id) + "]");
+          selectedCirc.classList.add("selected");
+          selectedCirc.style.borderColor = player1Col;
+
+          //ensure the other circle is not pressed
+          if(id.includes("blue")){
+            var otherCirc = document.querySelector("#circle-red");
+            otherCirc.style.borderColor = "white";
+          //  otherCirc.style.outlineColor = "white";
+            if(otherCirc.classList.contains("selected")){
+              otherCirc.classList.remove("selected");
+            }
+          } else {
+            var otherCirc = document.querySelector("#circle-blue");
+            otherCirc.style.borderColor = "white";
+          //  otherCirc.style.outlineColor = "white";
+            if(otherCirc.classList.contains("selected")){
+              otherCirc.classList.remove("selected");
+            }
+          }
+
+        }
+
       </script>
 
-      <!--start screen to wait for user gesture-->
-      <div id="user-gesture-overlay">
-        <div id="container">
-          <a href="/player1">
-            <button class="user-gesture-button" onclick="startExperience();">
-              PLAYER1
-            </button>
-          </a>
-          <a href="/player2">
-            <button class="user-gesture-button" onclick="startExperience();">
-              PLAYER2
-            </button>
-          </a>
-          <img id="loading-animation" src="https://cdn.glitch.com/4d85200f-900f-4f4a-b950-82c4af80c1fb%2Floader.gif?v=1611262527887">
-        </div>
-      </div>
-
-
-      <!--all a-frame stuff needs to be in an a-scene-->
-      <a-scene start-experience> 
-
-          <!--aframe uses an asset system to cache assets-->
-          <a-assets timeout="10000">
-        
-            <!--music/sounds-->
-          </a-assets>
-
-          <!--camera-->
-          <a-entity id="cam" camera wasd-controls look-controls position="0 1.6 0">
-              <!--cursor-->
-              <a-entity id="mouse" cursor="rayOrigin:mouse;" raycaster="far:5; interval:200; objects: .interactive;"></a-entity>      
-          </a-entity>
-          
-          <!--environment-->
-          <a-entity environment="preset: forest; fog: 0.75; shadow: true; groundTexture: none; groundColor: rgb(255, 255, 255); dressingColor: rgb(172,217,180)"></a-entity>
-
-        </a-scene>
     </body>
 
 </html>
