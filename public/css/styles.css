@@ -77,13 +77,18 @@
 
   #player2{
     background-color: #d938c6;
+    border-radius: 0px 0px 0px 50px;
+  }
+
+  #teamText{
+    display: none;
   }
 
   .ui-circles{
     padding: 30px;
     margin: 2%;
     border: 5px solid #ffffff;
-    border-radius: 50px 50px 50px 50px;
+    border-radius: 0px 0px 50px 0px;
     margin: 5%;
   }
 

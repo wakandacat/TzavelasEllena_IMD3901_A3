@@ -48,7 +48,7 @@
             </button>
           <img id="loading-animation" src="https://cdn.glitch.com/4d85200f-900f-4f4a-b950-82c4af80c1fb%2Floader.gif?v=1611262527887">
         </div>
-        <button class="user-gesture-button" onclick="startExperience();">
+        <button class="user-gesture-button">
           <p>START</p>
         </button>
       </div>
@@ -58,6 +58,9 @@
           <button id="player1" class="ui-circles">
             1
           </button>
+        </div>
+        <div>
+          <h1 id="teamText">WAITING FOR OTHER PLAYER</h1>
         </div>
         <div>
           <button id="player2" class="ui-circles">
@@ -71,25 +74,56 @@
 
         var player1Col = "#53e043";
         var player2Col = "#d938c6";
-
+        var isCollab = true;
 
          let socket = io(); //connect this client
 
           socket.on('connect', (userData) => {
               console.log('Hello there');
 
-            //num clients connected
-           // var users = io.engine.clientsCount;
-           // console.log(users);
 
-            //send event
-            document.querySelector('#circle-red').addEventListener('click', function(e) {
-                socket.emit('red', socket.id);
+            //event to send final user choice to server
+            document.querySelector('.user-gesture-button').addEventListener('click', function(e) {
+             // console.log("ending");
+             //get the final selected colour of the user
+              var finalColour = document.querySelector(".selected");
+              if(finalColour.id == "circle-red"){
+                  finalColour = "red";
+              } else {
+                finalColour = "blue";
+              }
+              //disable the button
+              document.querySelector('.user-gesture-button').disabled = true;
+
+              socket.emit('finalChoice', finalColour);
             })
+
+            //event to determine teams
+            socket.on('teams', (data) => {
+                console.log('teams: ' + data);
+
+                //show trhe waiting text
+                document.querySelector('#teamText').style.display='block';
+
+               if(data.includes("red") && data.includes("blue")){
+                  isCollab = false;
+               } else {
+                  isCollab = true;
+               }
+               //check that we have two responses
+               if(data.length >= 6){
+                  startExperience();
+               }
+            });
 
             //send event
             document.querySelector('#circle-blue').addEventListener('click', function(e) {
                 socket.emit('blue', socket.id);
+            })
+
+            //send event
+            document.querySelector('#circle-red').addEventListener('click', function(e) {
+                socket.emit('red', socket.id);
             })
 
             //listen for our custom colour change event
@@ -99,11 +133,18 @@
                 //if event was from other client
                 if(temp.includes(socket.id) != true){
                   if(temp.includes("red")){
+                    //change the outlines
                     var otherCirc = document.querySelector("#circle-red");
+                    var selected = document.querySelector("#circle-blue");
                     otherCirc.style.outlineColor = player2Col;
+                    selected.style.outlineColor = "white";
+                 
                   } else {
+                    //change the outlines
                     var otherCirc = document.querySelector("#circle-blue");
+                    var selected = document.querySelector("#circle-red");
                     otherCirc.style.outlineColor = player2Col;
+                    selected.style.outlineColor = "white";
                   }
                 }
             });
@@ -118,12 +159,8 @@
             document.querySelector('#loading-animation').style.display='none';
           }
         });
-        
-        function startExperience() {
-          //hide user-gesture overlay
-           document.querySelector('#user-gesture-overlay').style.display='none';
-        }
 
+        //chnage the colours of the circle borders as the user presses them
         function startSelection(id){
 
           //show the start button
@@ -138,19 +175,26 @@
           if(id.includes("blue")){
             var otherCirc = document.querySelector("#circle-red");
             otherCirc.style.borderColor = "white";
-          //  otherCirc.style.outlineColor = "white";
+
             if(otherCirc.classList.contains("selected")){
               otherCirc.classList.remove("selected");
             }
           } else {
             var otherCirc = document.querySelector("#circle-blue");
             otherCirc.style.borderColor = "white";
-          //  otherCirc.style.outlineColor = "white";
+
             if(otherCirc.classList.contains("selected")){
               otherCirc.classList.remove("selected");
             }
           }
+        }
 
+        //once both users have selected a team, the game begins
+        function startExperience() {
+          console.log("lets gooooo");
+          //hide user-gesture overlay
+           document.querySelector('#user-gesture-overlay').style.display='none';
+           var instructions = document.querySelector('#teamText');
         }
 
       </script>

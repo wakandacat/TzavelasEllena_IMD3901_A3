@@ -14,12 +14,18 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/public/index.html');
 });
 
+//globals
+var client1Col = "";
+var client2Col = "";
 
 //websocket stuff
 //.on is an event listener
 //.emit is sending event
 io.on('connection', (socket) => { //listening for all socket connection events
     console.log(socket.id + " is connected.");
+
+    client1Col = "";
+    client2Col = "";
 
     //listen to this specific socket event
     socket.on('disconnect', () => {
@@ -35,6 +41,17 @@ io.on('connection', (socket) => { //listening for all socket connection events
     socket.on('blue', (data) => {
         console.log("blue event received from" + data);
         io.emit('circleChoice', 'blue' + data); //send an event to all clients
+    });
+
+    socket.on('finalChoice', (data) => {
+        console.log("final choice received of" + data);
+        //get user 1's final choice
+        if(client1Col === ""){
+            client1Col = data;
+        } else { //get user 2's choice
+            client2Col = data;
+        }
+        io.emit('teams', client1Col + client2Col); //send an event to all clients
     });
 });
 
