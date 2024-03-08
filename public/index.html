@@ -19,7 +19,7 @@
 
     <body>
        <!--all a-frame stuff needs to be in an a-scene-->
-       <a-scene start-experience> 
+       <a-scene start-experience create-balls> 
 
         <!--aframe uses an asset system to cache assets-->
         <a-assets timeout="10000">
@@ -34,7 +34,7 @@
         </a-entity>
         
         <!--environment-->
-        <a-entity environment="preset: forest; fog: 0.75; shadow: true; groundTexture: none; groundColor: rgb(255, 255, 255); dressingColor: rgb(172,217,180)"></a-entity>
+        <a-entity environment="preset: threetowers; fog: 0.75; shadow: true;"></a-entity>
 
       </a-scene>
 
@@ -60,7 +60,7 @@
           </button>
         </div>
         <div>
-          <h1 id="teamText">WAITING FOR OTHER PLAYER</h1>
+          <h1 id="teamText">PLAYERS CONNECTED: 1</h1>
         </div>
         <div>
           <button id="player2" class="ui-circles">
@@ -71,10 +71,12 @@
 
 
       <script>
-
+        //globals
         var player1Col = "#53e043";
         var player2Col = "#d938c6";
         var isCollab = true;
+        var numBalls = 12; //hardcoded as dont want to send too much data over the network
+        var ballCols = [[234,78,98], [67, 23, 255], [255,0,0], [0,255,0], [0,0,255], [100,0,100]]; //hardcoded as dont want to send too much data over the network
 
          let socket = io(); //connect this client
 
@@ -160,6 +162,41 @@
           }
         });
 
+        AFRAME.registerComponent('create-balls', {
+          init: function () {
+
+            var scene = document.querySelector('a-scene');
+            var numCol = 0;
+
+            for(let i = 0; i < numBalls; i++){
+              //get random positioning values
+              var randX = (Math.random() < 0.5 ? -1 : 1);
+              randX = randX * (Math.floor(Math.random() * 20));
+              var randY = Math.floor(Math.random() * 3) + 1;
+              var randZ = (Math.random() < 0.5 ? -1 : 1);
+              randZ = randZ * (Math.floor(Math.random() * 20));
+
+              //every 2 balls need a new colour
+              if(i%2 === 0 && i !== 0){
+                numCol++;
+              }
+
+              var currentR = ballCols[numCol][0];
+              var currentG = ballCols[numCol][1];
+              var currentB = ballCols[numCol][2];
+
+              //create the balls
+              var ball = document.createElement('a-entity');
+              ball.setAttribute('class', 'ball interactive');
+              ball.setAttribute('geometry', {primitive: 'sphere'},{radius: '1'});
+              ball.setAttribute('material', {color: `rgb(${currentR}, ${currentG}, ${currentB})`});
+              ball.setAttribute('position', `${randX} ${randY} ${randZ}`);
+              ball.setAttribute('selected', "");
+              scene.appendChild(ball); //append it to the scene
+            }
+          }
+        });
+
         //chnage the colours of the circle borders as the user presses them
         function startSelection(id){
 
@@ -191,11 +228,50 @@
 
         //once both users have selected a team, the game begins
         function startExperience() {
-          console.log("lets gooooo");
           //hide user-gesture overlay
            document.querySelector('#user-gesture-overlay').style.display='none';
            var instructions = document.querySelector('#teamText');
+           if(isCollab){
+            instructions.innerHTML = "MATCH COLOUR PAIRS!";
+           } else {
+            instructions.innerHTML = "MATCH MORE COLOUR PAIRS THAN YOUR ENEMY!";
+           }
         }
+
+
+        AFRAME.registerComponent('selected', {
+          init: function () {
+            
+            var el = this.el;
+            var elCol = el.getAttribute('material').color;
+            var scene = document.querySelector('a-scene');
+
+            //the mouseover changes the colour of the ball
+            el.addEventListener('mouseenter', function () {
+                
+              console.log('hover');
+              el.removeAttribute('material', 'color');
+              el.setAttribute('material','color', 'white');
+                 
+            });
+
+            //when mouse leaves change the colour back
+            el.addEventListener('mouseleave', function () {
+                
+                console.log('exit');
+                el.removeAttribute('material', 'color');
+                el.setAttribute('material','color', `${elCol}`);
+                   
+            });
+
+            //once the ball is clicked "thrown"
+            el.addEventListener('click', function () {
+               
+              console.log("clicked");
+           });            
+            
+          }
+        });
 
       </script>
 
