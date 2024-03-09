@@ -57,15 +57,25 @@
         <div>
           <button id="player1" class="ui-circles">
             1
+            <h3 id="enemyText1">Matches:</h3>
           </button>
         </div>
         <div>
           <h1 id="teamText">PLAYERS CONNECTED: 1</h1>
+          <h1 id="collabText">Matches: </h1>
         </div>
         <div>
           <button id="player2" class="ui-circles">
             2
+            <h3 id="enemyText2">Matches:</h3>
           </button>
+        </div>
+      </div>
+
+       <!--end screen-->
+       <div id="end-overlay">
+        <div id="container">
+            <h1>GAME OVER</h1>
         </div>
       </div>
 
@@ -76,7 +86,11 @@
         var player2Col = "#d938c6";
         var isCollab = true;
         var numBalls = 12; //hardcoded as dont want to send too much data over the network
-        var ballCols = [[234,78,98], [67, 23, 255], [255,0,0], [0,255,0], [0,0,255], [100,0,100]]; //hardcoded as dont want to send too much data over the network
+        var ballCols = [[66, 245, 227], [131, 232, 125], [204, 51, 31], [83, 31, 161], [247, 121, 191], [237, 235, 81]]; //hardcoded as dont want to send too much data over the network
+
+        //hide end-game screen
+        document.querySelector("#end-overlay").style.display = "none";
+
 
          let socket = io(); //connect this client
 
@@ -104,7 +118,7 @@
             socket.on('teams', (data) => {
                 console.log('teams: ' + data);
 
-                //show trhe waiting text
+                //show the waiting text
                 document.querySelector('#teamText').style.display='block';
 
                if(data.includes("red") && data.includes("blue")){
@@ -187,17 +201,64 @@
 
               //create the balls
               var ball = document.createElement('a-entity');
+              ball.setAttribute('id', `${i}`);
               ball.setAttribute('class', 'ball interactive');
               ball.setAttribute('geometry', {primitive: 'sphere'},{radius: '1'});
               ball.setAttribute('material', {color: `rgb(${currentR}, ${currentG}, ${currentB})`});
-              ball.setAttribute('position', `${randX} ${randY} ${randZ}`);
+              ball.setAttribute('position', `${randX}, ${randY}, ${randZ}`);
               ball.setAttribute('selected', "");
               scene.appendChild(ball); //append it to the scene
+
+              //create the balls
+              var selectBall = document.createElement('a-entity');
+              selectBall.setAttribute('id', `select${i}`);
+              selectBall.setAttribute('visible', 'false');
+              selectBall.setAttribute('geometry', {primitive: 'sphere'},{radius: 1});
+              selectBall.setAttribute('scale', '0.2 0.2 0.2');
+              selectBall.setAttribute('position', '0, 1.5, 0');
+              ball.appendChild(selectBall); //append it to the scene
             }
-          }
+
+          },
+          tick: function(){
+            
+            var numSelected = 0;
+            var numPaired = 0;
+            var scene = document.querySelector('a-scene');
+
+            for(let i = 0; i < numBalls; i++){
+              
+              if(document.querySelector(`#select${i}`).getAttribute('visible') == true){
+                numSelected++;
+              }
+
+              //if both the current ball and its pair are selected
+              if(i%2 === 0){
+                if(document.querySelector(`#select${i}`).getAttribute('visible') == true && document.querySelector(`#select${i+1}`).getAttribute('visible') == true){
+                  numPaired++;
+                  if(!isCollab){
+                    document.querySelector("#enemyText1").innerHTML = "Matches: " + numPaired;
+                  }
+                }
+              }
+         
+            if(numSelected === 12){
+              scene.removeAttribute('create-balls');
+              gameEnd();
+            }
+
+            }
+          },
         });
 
-        //chnage the colours of the circle borders as the user presses them
+        function gameEnd(){
+
+          document.querySelector("#teamText").style.display = "none";
+          document.querySelector("#end-overlay").style.display = "block";
+
+        }
+
+        //change the colours of the circle borders as the user presses them
         function startSelection(id){
 
           //show the start button
@@ -233,8 +294,11 @@
            var instructions = document.querySelector('#teamText');
            if(isCollab){
             instructions.innerHTML = "MATCH COLOUR PAIRS!";
+            document.querySelector('#collabText').style.display = 'block';
            } else {
             instructions.innerHTML = "MATCH MORE COLOUR PAIRS THAN YOUR ENEMY!";
+            document.querySelector('#enemyText1').style.display = 'block';
+            document.querySelector('#enemyText2').style.display = 'block';
            }
         }
 
@@ -249,7 +313,6 @@
             //the mouseover changes the colour of the ball
             el.addEventListener('mouseenter', function () {
                 
-              console.log('hover');
               el.removeAttribute('material', 'color');
               el.setAttribute('material','color', 'white');
                  
@@ -258,7 +321,6 @@
             //when mouse leaves change the colour back
             el.addEventListener('mouseleave', function () {
                 
-                console.log('exit');
                 el.removeAttribute('material', 'color');
                 el.setAttribute('material','color', `${elCol}`);
                    
@@ -267,7 +329,12 @@
             //once the ball is clicked "thrown"
             el.addEventListener('click', function () {
                
-              console.log("clicked");
+              //get the corresponding smaller circle
+              var connectedSelect = document.querySelector(`#select${el.getAttribute('id')}`);
+              connectedSelect.setAttribute('material', 'color', `${player1Col}`);
+              connectedSelect.setAttribute('visible', true);
+              el.removeAttribute('class', 'interactive');
+              el.removeAttribute('selected');
            });            
             
           }

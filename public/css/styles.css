@@ -1,6 +1,6 @@
 /* just some css to make an overlay cover all A-Frame */
 
-#user-gesture-overlay {
+#user-gesture-overlay, #end-overlay {
     position: absolute;
     display: flex;
     width: 100%;
@@ -80,7 +80,7 @@
     border-radius: 0px 0px 0px 50px;
   }
 
-  #teamText{
+  #teamText, #collabText, #enemyText1, #enemyText2{
     display: none;
   }
 
