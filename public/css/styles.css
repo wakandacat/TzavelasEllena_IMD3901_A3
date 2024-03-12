@@ -81,7 +81,13 @@
   }
 
   #teamText, #collabText, #enemyText1, #enemyText2{
+    padding: 3%;
     display: none;
+    text-align: center;
+  }
+
+  #winnerText{
+    font-size: 3em;
   }
 
   .ui-circles{
