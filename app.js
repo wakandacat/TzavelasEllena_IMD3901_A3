@@ -32,6 +32,7 @@ io.on('connection', (socket) => { //listening for all socket connection events
         console.log(socket.id + " is disconnected.");
     });
 
+    //--------------------start game socket stuff---------------------------
     //custom events
     socket.on('red', (data) => {
         console.log("red event received from" + data);
@@ -52,6 +53,12 @@ io.on('connection', (socket) => { //listening for all socket connection events
             client2Col = data;
         }
         io.emit('teams', client1Col + client2Col); //send an event to all clients
+    });
+
+//---------------------in game socket stuff----------------------------
+    //pass selected balls to all clients  
+    socket.on('allSelected', (data) => {
+        io.emit('matching', data); //send an event to all clients
     });
 });
 
